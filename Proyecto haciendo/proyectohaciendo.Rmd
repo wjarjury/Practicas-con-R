@@ -1,0 +1,158 @@
+---
+title: "proyecto se aprende haciendo"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Empezamos cargando las librerias necesario
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(lubridate)
+```
+
+# Ahora cargamos nuestro dataframe
+
+```{r}
+#Con esta cargamos el dataframe
+df=read.csv("C:\\Users\\Winston\\Documents\\Ciencia de datos Betametrica\\Iowa_Liquor_Sales_YG84CD.csv")
+#Ahora visualizamos inicialmente nuestra data
+head(df)
+#Visualizamos el nombre de nuestras columnas para facil acceso
+colnames(df)
+```
+# Ahora procedemos a cumplir con las asignaciones
+
+```{r}
+#Necesitamos crear una columna que contenga los anios de tal manera que se nos haga facil aplicar los filtros
+
+
+#Vamos a visualizar el tipo de dato
+str(df)
+#Como vemos que Date es character hacemos la conversion a date
+df$Date=mdy(df$Date)
+#Ahora vamos a crear una nueva columna anios
+df=df%>%
+  mutate(anio=year(Date))
+```
+
+# Ahora vamos a empezar con la respuesta de las preguntas
+
+```{r}
+#Ponemos todos en el mismo tipo de caracter
+df$City=toupper(df$City)
+
+#Para tomar el nombre exacto tabulamos
+table(df$City)
+#La Columna de Sales tiene el signo de $, esto impide hacer el summarize correctamente, es necesario limpiarla
+df=df%>%
+  mutate(venta=substr(Sale..Dollars.,2,length(Sale..Dollars.)))
+#Ahora procedemos a verificar el tipo de dato
+str(df$venta)
+#Realizamos la conversion a numero
+df$venta=as.numeric(df$venta)
+#Ahora respondemos la pregunta
+df%>%
+  filter(anio==2016,City=="CEDAR RAPIDS")%>%
+  group_by(Store.Name)%>%
+  summarise(ventas=sum(venta))%>%
+  arrange(desc(ventas))%>%
+  head(5)
+
+```
+```{r}
+top_5=df%>%
+  filter(anio==2016,City=="CEDAR RAPIDS")%>%
+  group_by(Store.Name)%>%
+  summarise(ventas=mean(venta))%>%
+  arrange(desc(ventas))%>%
+  head(5)
+top_5
+```
+#Ahora seguimos con la segunda pregunta
+
+```{r}
+
+final_5=df%>%
+  filter(anio==2016,City=="DAVENPORT")%>%
+  group_by(Vendor.Name)%>%
+  summarise(ventas=mean(venta))%>%
+  arrange(ventas)%>%
+  tail(5)
+  
+final_5
+
+```
+# Ahora finalizamos con la ultima pregunta 
+
+```{r}
+
+#Para el anio 2016 
+producto_2016=df%>%
+  filter(anio==2016)%>%
+  group_by(Item.Description,City)%>%
+  summarise(cant_vendidad=sum(Bottles.Sold))
+
+producto_2016
+#Con esto sabemos la cantidad de elmentos distintos
+length(unique(producto_2016$City))
+#Con esto vemos el nombre de las ciudades distintas
+unique(producto_2016$City)
+
+ciudad1=producto_2016%>%
+  filter(City=="CEDAR RAPIDS")%>%
+  arrange(desc(cant_vendidad))%>%
+  head(5)
+
+ciudad2=producto_2016%>%
+  filter(City=="DAVENPORT")%>%
+  arrange(desc(cant_vendidad))%>%
+  head(5)
+
+ciudad3=producto_2016%>%
+  filter(City=="WATERLOO")%>%
+  arrange(desc(cant_vendidad))%>%
+  head(5)
+
+ciudad1
+ciudad2
+ciudad3
+```
+# Para el anio 2017
+
+
+```{r}
+#Para el anio 2016 
+producto_2017=df%>%
+  filter(anio==2017)%>%
+  group_by(Item.Description,City)%>%
+  summarise(cant_vendidad=sum(Bottles.Sold))
+
+producto_2017
+#Con esto sabemos la cantidad de elmentos distintos
+length(unique(producto_2017$City))
+#Con esto vemos el nombre de las ciudades distintas
+unique(producto_2017$City)
+
+ciudad4=producto_2017%>%
+  filter(City=="CEDAR RAPIDS")%>%
+  arrange(desc(cant_vendidad))%>%
+  head(5)
+
+ciudad5=producto_2017%>%
+  filter(City=="DAVENPORT")%>%
+  arrange(desc(cant_vendidad))%>%
+  head(5)
+
+ciudad6=producto_2017%>%
+  filter(City=="WATERLOO")%>%
+  arrange(desc(cant_vendidad))%>%
+  head(5)
+
+ciudad4
+ciudad5
+ciudad6
+```
+
