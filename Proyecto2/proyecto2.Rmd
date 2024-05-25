@@ -1,0 +1,107 @@
+---
+title: "Proyecto2"
+author: "Ing Winston Jarjury Msc"
+date: "2024-05-25"
+output: github_document
+---
+# Cargando las librerias necesarias
+```{r,warning=FALSE}
+library(openxlsx)
+library(reshape2)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(tidyquant)
+```
+
+# Generamos nuestro dataset base para trabajar 
+
+```{r}
+comercio=read.xlsx("C:\\Users\\Winston\\Downloads\\Bolivia - Comercio Exterior segun Año y Mes, 1992 - 2024.xlsx",
+                        sheet = "COMEX MENSUAL 92-24",detectDates = TRUE)
+
+
+produccion=read.xlsx("C:\\Users\\Winston\\Downloads\\1. Bolivia - Produccion de Petroleo y Gas Natural segun Año y Mes 1990 - 2024.xlsx",
+                   sheet = "H01",detectDates = TRUE)
+
+produccion=produccion %>% 
+  select(-PERÍODO)
+
+bolivia=cbind(comercio,produccion)
+
+View(bolivia)
+
+```
+
+
+
+```{r, warning=FALSE}
+agrupados=bolivia %>% 
+  mutate(anio=year(Periodo),
+         mes=month(Periodo))
+
+
+```
+
+# Generamos graficos de columnas apiladas
+
+
+```{r,fig.width=24,fig.height=8}
+
+ggplot(data=agrupados,aes(x=as.factor(anio),y=Exportaciones),fill=as.factor(anio))+
+  geom_boxplot(color="#131313")+
+  labs(title="Diagrama de caja y bigotes de las exportaciones en Bolivia",
+       subtitle = "En millones dólares estadounidenses",
+       caption = "Fuente: Banco central de Bolivia\nElaboracion: Autor",
+       x="Años")+
+  theme(axis.text.x=element_text(angle=90,hjust = 1))
+
+
+```
+
+
+```{r}
+nuevoagrupado= agrupados %>% 
+  select(-mes) %>% 
+  melt(id.vars = "anio") %>% 
+  filter(variable=="Exportaciones" | variable=="Importaciones(2)" )
+
+
+ggplot(data=nuevoagrupado,aes(x=as.factor(anio),y=value,fill=variable))+
+  geom_col(position = "dodge")+
+  labs(title="Grafico de barras no apiladas por exportaciones e importaciones",
+       subtitle = "En millones dólares estadounidenses",
+       caption = "Fuente: Banco central de Bolivia\nElaboracion: Autor",
+       x="Años",y="Cifras")+
+  theme(axis.text.x=element_text(angle=90,hjust = 1))
+```
+
+
+```{r}
+bolivia2=bolivia %>% 
+  melt(id.vars = "Periodo") %>% 
+  filter(variable=="Exportaciones" | variable=="Importaciones(2)" )
+
+
+ggplot(data=bolivia2,aes(x=Periodo,y=value))+
+  geom_line()+
+  facet_grid(.~variable,scales = "free")+
+  geom_hline(yintercept = mean(bolivia2$value), col = "grey")+
+  geom_ma(aes(color="MA(12)"),ma_fun = SMA,
+          n = 12, size = 1,
+          show.legend = TRUE)+
+  labs(title="Grafico temporal entre exportaciones e importaciones",
+       subtitle = "En millones dólares estadounidenses",
+       caption = "Fuente: Banco central de Bolivia\nElaboracion: Autor",
+       x="Años",y="Cifras")
+
+```
+
+
+
+
+```{r}
+
+```
+
